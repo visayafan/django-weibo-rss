@@ -13,8 +13,6 @@ PEOPLE_DETAIL_URL = WEIBO_API_ROOT + 'api/container/getIndex?type=uid&value={id}
 # 单条微博全文
 STATUS_DETAIL_URL = WEIBO_API_ROOT + 'statuses/show?id={id}'
 
-# 1页10条微博，若害怕错过信息可设置大些
-PAGES = 2
 # 最大标题长度
 TITLE_MAX_LENGTH = 20
 
@@ -61,13 +59,13 @@ def index(request, uid):
 
     # 获取用户最近的微博
     items = []
-    weibo_response = requests.get(WEIBO_LIST_URL.format(id=uid, page_num=PAGES)).json()
+    weibo_response = requests.get(WEIBO_LIST_URL.format(id=uid, page_num=1)).json()
     for card in weibo_response['data']['cards']:
         if 'mblog' in card:
             item = WeiboItem()
             status = card['mblog']
             # 若第1句少于TITLE_MAX_LENGTH个字符则取第1句话作为标题
-            item.title = re.split(',|\.|\!|\?|，|。|！|？', BeautifulSoup(status['text']).get_text())[0][
+            item.title = re.split(',|\.|\!|\?|，|。|！|？', BeautifulSoup(status['text'], 'html.parser').get_text())[0][
                          :TITLE_MAX_LENGTH] + '...'
             item.description = format_status(status)
             item.link = 'https://m.weibo.cn/status/{id}'.format(id=status['id'])
