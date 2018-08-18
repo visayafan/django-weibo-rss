@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/"
+     xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+        <title><![CDATA[{{profile.title|safe }}]]></title>
+        <description><![CDATA[{{profile.description|safe }}]]></description>
+        <url><![CDATA[{{profile.link|safe }}]]></url>
+        {% for item in items %}
+            <item>
+                <title><![CDATA[{{item.title|safe }}]]></title>
+                <description><![CDATA[{{item.description|safe }}]]></description>
+                <link><![CDATA[{{item.link|safe }}]]></link>
+            </item>
+        {% endfor %}
+    </channel>
+</rss>

@@ -17,7 +17,7 @@ STATUS_DETAIL_URL = WEIBO_API_ROOT + 'statuses/show?id={id}'
 TITLE_MAX_LENGTH = 20
 
 
-class WeiboItem():
+class FeedItem():
     title = ''
     description = ''
     link = ''
@@ -49,7 +49,7 @@ def format_status(status):
 
 
 def index(request, uid):
-    profile = WeiboItem()
+    profile = FeedItem()
     # 首先根据uid获取用户信息
     profile_response = requests.get(PEOPLE_DETAIL_URL.format(id=uid)).json()
     p = profile_response['data']['userInfo']
@@ -62,7 +62,7 @@ def index(request, uid):
     weibo_response = requests.get(WEIBO_LIST_URL.format(id=uid, page_num=1)).json()
     for card in weibo_response['data']['cards']:
         if 'mblog' in card:
-            item = WeiboItem()
+            item = FeedItem()
             status = card['mblog']
             # 若第1句少于TITLE_MAX_LENGTH个字符则取第1句话作为标题
             item.title = re.split(',|\.|\!|\?|，|。|！|？', BeautifulSoup(status['text'], 'html.parser').get_text())[0][
