@@ -21,4 +21,4 @@ def dazuoshou(request):
         item.link = dzsurl + a['href']
         item.description = ''.join(map(str, BeautifulSoup(requests.get(item.link).content, 'html.parser').find('div', class_='content').contents))
         items.append(item)
-    return render(request, 'miscs/dazuoshou.xml', {'profile': profile, 'items': items}, content_type='text/xml')
+    return render(request, 'weibo/atom.xml', {'profile': profile, 'items': items}, content_type='text/xml')
