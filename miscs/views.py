@@ -41,7 +41,8 @@ def fangeqiang(request):
     if all_pre is not None:
         for a_pre in all_pre:
             if 'ssr://' in a_pre.text:
-                item.description = a_pre.text
+                urls = [x for x in a_pre.text.split() if 'ssr://' in x]
+                item.description = '<a href="{ssrurl}">{ssrurl}</a><br/><br/><img src="{imgurl}"/>'.format(ssrurl=urls[0], imgurl=urls[1])
                 break
     item.link = profile.link
     items = [item]
