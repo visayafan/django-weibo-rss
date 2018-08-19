@@ -29,7 +29,7 @@ def fangeqiang(request):
     profile.title = '翻个墙SSR更新通知'
     profile.description = '翻个墙SSR更新通知'
     profile.link = 'https://fangeqiang.com/408.html'
-    b = BeautifulSoup(requests.get(profile.link), 'html.parser')
+    b = BeautifulSoup(requests.get(profile.link).content, 'html.parser')
     item = FeedItem()
     all_a = b.find_all('a', class_='xButton')
     if all_a is not None:
