@@ -45,7 +45,21 @@ def format_status(status):
         for pic in status['pics']:
             text += '<br/><br/><a href="{large_url}" target="_blank"><img src="{small_url}"/></a>'.format(
                 large_url=pic['large']['url'], small_url=pic['url'])
-    return text
+    b = BeautifulSoup(text, 'html.parser')
+    icons = b.find_all('span', class_='url-icon')
+    # 去掉位置前的图标，太大太难看
+    if icons is not None:
+        for icon in icons:
+            if 'location' in icon.img['src']:
+                icon.decompose()
+    return str(b)
+
+
+def format_title(description):
+    b = BeautifulSoup(description, 'html.parser')
+    # 若第1句少于TITLE_MAX_LENGTH个字符则取第1句话作为标题
+    title = re.split(',|\.|\!|\?|，|。|！|？', b.get_text())[0][:TITLE_MAX_LENGTH] + '...'
+    return title
 
 
 def index(request, uid):
@@ -64,11 +78,9 @@ def index(request, uid):
         if 'mblog' in card:
             item = FeedItem()
             status = card['mblog']
-            # 若第1句少于TITLE_MAX_LENGTH个字符则取第1句话作为标题
-            item.title = re.split(',|\.|\!|\?|，|。|！|？', BeautifulSoup(status['text'], 'html.parser').get_text())[0][
-                         :TITLE_MAX_LENGTH] + '...'
             item.description = format_status(status)
             item.link = 'https://m.weibo.cn/status/{id}'.format(id=status['id'])
+            item.title = format_title(item.description)
             items.append(item)
 
     return render(request, 'weibo/atom.xml', {'profile': profile, 'items': items}, content_type='text/xml')
