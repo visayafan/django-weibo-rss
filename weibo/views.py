@@ -18,9 +18,10 @@ TITLE_MAX_LENGTH = 20
 
 
 class FeedItem():
-    title = ''
-    description = ''
-    link = ''
+    def __init__(self, title, description, link):
+        self.title = title
+        self.description = description
+        self.link = link
 
 
 # 获取微博全文
@@ -69,28 +70,27 @@ def format_title(description):
     if len(b.text) <= TITLE_MAX_LENGTH:
         return b.text
     # 否则取第1句的前TITLE_MAX_LENGTH个字符作为标题
-    return re.split(r'[,.!?:;，。！？：；]', b.text)[0][:TITLE_MAX_LENGTH] + '...'
+    return re.split(r'[,.!?:;，。！？：；\s]', b.text)[0][:TITLE_MAX_LENGTH] + '...'
 
 
 def index(request, uid):
-    profile = FeedItem()
     # 首先根据uid获取用户信息
     profile_response = requests.get(PEOPLE_DETAIL_URL.format(id=uid)).json()
     p = profile_response['data']['userInfo']
-    profile.title = '{name}的微博'.format(name=p['screen_name'])
-    profile.description = p['description']
-    profile.link = 'https://weibo.com/{id}'.format(id=uid)
+    title = '{name}的微博'.format(name=p['screen_name'])
+    description = p['description']
+    link = 'https://weibo.com/{id}'.format(id=uid)
+    profile = FeedItem(title, description, link)
 
     # 获取用户最近的微博
     items = []
     weibo_response = requests.get(WEIBO_LIST_URL.format(id=uid, page_num=1)).json()
     for card in weibo_response['data']['cards']:
         if 'mblog' in card:
-            item = FeedItem()
             status = card['mblog']
-            item.description = format_status(request, status)
-            item.link = 'https://m.weibo.cn/status/{id}'.format(id=status['id'])
-            item.title = format_title(item.description)
-            items.append(item)
+            description = format_status(request, status)
+            link = 'https://m.weibo.cn/status/{id}'.format(id=status['id'])
+            title = format_title(description)
+            items.append(FeedItem(title, description, link))
 
     return render(request, 'weibo/atom.xml', {'profile': profile, 'items': items}, content_type='text/xml')
