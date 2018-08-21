@@ -5,6 +5,7 @@ from django.shortcuts import render
 from .models import FeedModel
 from .views import FeedItem
 
+# 此文件与生成微博rss订阅源无关，私用备份
 
 def dazuoshou(request):
     title = '大作手通知'
