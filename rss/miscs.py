@@ -1,12 +1,17 @@
 import requests
 from bs4 import BeautifulSoup
 from django.shortcuts import render
+from django.views.decorators.cache import cache_page
 
 from .models import FeedModel
 from .views import FeedItem
 
+
 # 此文件与生成微博rss订阅源无关，私用备份
 
+
+# 大作手通知更新缓慢，设置24小时缓存，这样24小时内再次访问时直接返回缓存中的上次访问的rss/rss.xml，缓存到期后才再次执行函数体中的内容并更新缓存中的rss.xml
+@cache_page(timeout=60 * 60 * 24)
 def dazuoshou(request):
     title = '大作手通知'
     description = '大作手网站通知RSS'

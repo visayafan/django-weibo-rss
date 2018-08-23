@@ -2,22 +2,31 @@ import re
 
 import requests
 from bs4 import BeautifulSoup
+from django.core.cache import cache
 from django.shortcuts import render
+from django.views.decorators.cache import cache_page
 
 WEIBO_API_ROOT = 'https://m.weibo.cn/'
+# 以下{uid}表用户id，{id}表某条微博id
 # 全部微博列表
-WEIBO_LIST_URL = WEIBO_API_ROOT + 'api/container/getIndex?containerid=230413{id}_-_WEIBO_SECOND_PROFILE_WEIBO&page={page_num}'
+WEIBO_LIST_API_URL = WEIBO_API_ROOT + 'api/container/getIndex?containerid=230413{uid}_-_WEIBO_SECOND_PROFILE_WEIBO&page={page_num}'
 # 用户详情
-PEOPLE_DETAIL_URL = WEIBO_API_ROOT + 'api/container/getIndex?type=uid&value={id}'
-
+PEOPLE_DETAIL_API_URL = WEIBO_API_ROOT + 'api/container/getIndex?type=uid&value={uid}'
 # 单条微博全文
-STATUS_DETAIL_URL = WEIBO_API_ROOT + 'statuses/show?id={id}'
-
+STATUS_DETAIL_API_URL = WEIBO_API_ROOT + 'statuses/show?id={id}'
+# 用户微博首页
+PEOPLE_WEIBO_HOME_URL = WEIBO_API_ROOT + '{uid}'
+# 微博全文
+PEOPLE_WEIBO_FULLTEXT_URL = WEIBO_API_ROOT + 'status/{id}'
 # 最大标题长度
 TITLE_MAX_LENGTH = 20
+# 微博缓存时间3天
+STATUS_TTL = 60 * 60 * 24 * 3
+# 避免频繁抓取微博，3小时更新一次
+INDEX_TTL = 60 * 60 * 3
 
 
-class FeedItem():
+class FeedItem:
     def __init__(self, title, description, link):
         self.title = title
         self.description = description
@@ -27,7 +36,7 @@ class FeedItem():
 # 获取微博全文
 def get_full_text(status):
     if 'isLongText' in status:
-        long_status = requests.get(STATUS_DETAIL_URL.format(id=status['id'])).json()
+        long_status = requests.get(STATUS_DETAIL_API_URL.format(id=status['id'])).json()
         return long_status['data']['text']
     return status['text']
 
@@ -69,30 +78,36 @@ def format_status(request, status):
 def format_title(description):
     b = BeautifulSoup(description, 'html.parser')
     # 若微博内容文字少则直接做为标题
-    if len(b.text) <= TITLE_MAX_LENGTH:
+    if len(b.text.strip()) <= TITLE_MAX_LENGTH:
         return b.text
     # 否则取第1句的前TITLE_MAX_LENGTH个字符作为标题
-    return re.split(r'[,.!?:;，。！？：；\s]', b.text)[0][:TITLE_MAX_LENGTH] + '...'
+    return re.split(r'[,.!?:;，。！？：；\s]', b.text.strip())[0][:TITLE_MAX_LENGTH] + '...'
 
 
+@cache_page(timeout=INDEX_TTL)
 def index(request, uid):
     # 首先根据uid获取用户信息
-    profile_response = requests.get(PEOPLE_DETAIL_URL.format(id=uid)).json()
+    profile_response = requests.get(PEOPLE_DETAIL_API_URL.format(uid=uid)).json()
     p = profile_response['data']['userInfo']
     title = '{name}的微博'.format(name=p['screen_name'])
     description = p['description']
-    link = 'https://weibo.com/{id}'.format(id=uid)
+    link = PEOPLE_WEIBO_HOME_URL.format(uid=uid)
     profile = FeedItem(title, description, link)
 
     # 获取用户最近的微博
     items = []
-    weibo_response = requests.get(WEIBO_LIST_URL.format(id=uid, page_num=1)).json()
+    weibo_response = requests.get(WEIBO_LIST_API_URL.format(uid=uid, page_num=1)).json()
     for card in weibo_response['data']['cards']:
         if 'mblog' in card:
             status = card['mblog']
-            description = format_status(request, status)
-            link = 'https://m.weibo.cn/status/{id}'.format(id=status['id'])
-            title = format_title(description)
-            items.append(FeedItem(title, description, link))
-
+            status_id = status['id']
+            if not cache.get(status_id):
+                description = format_status(request, status)
+                link = PEOPLE_WEIBO_FULLTEXT_URL.format(id=status_id)
+                title = format_title(description)
+                item = FeedItem(title, description, link)
+                items.append(item)
+                cache.set(status_id, item, STATUS_TTL)
+            else:
+                items.append(cache.get(status_id))
     return render(request, 'rss/rss.xml', {'profile': profile, 'items': items}, content_type='text/xml')
