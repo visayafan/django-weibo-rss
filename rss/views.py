@@ -3,7 +3,7 @@ import re
 import requests
 from bs4 import BeautifulSoup
 from django.core.cache import cache
-from django.shortcuts import render
+from django.http import JsonResponse
 from django.views.decorators.cache import cache_page
 
 WEIBO_API_ROOT = 'https://m.weibo.cn/'
@@ -88,16 +88,16 @@ def format_title(description):
 
 @cache_page(timeout=INDEX_TTL)
 def index(request, uid):
-    # 首先根据uid获取用户信息
-    profile_response = requests.get(PEOPLE_DETAIL_API_URL.format(uid=uid)).json()
-    p = profile_response['data']['userInfo']
-    title = '{name}的微博'.format(name=p['screen_name'])
-    description = p['description']
-    link = PEOPLE_WEIBO_HOME_URL.format(uid=uid)
-    profile = FeedItem(title, description, link)
-
+    p = requests.get(PEOPLE_DETAIL_API_URL.format(uid=uid)).json()['data']['userInfo']
+    # feedjson标准 https://jsonfeed.org/version/1
+    feed = {
+        'version': 'https://jsonfeed.org/version/1',
+        'title': '{name}的微博'.format(name=p['screen_name']),
+        'description': p['description'],
+        'home_page_url': PEOPLE_WEIBO_HOME_URL.format(uid=uid),
+        'items': []
+    }
     # 获取用户最近的微博
-    items = []
     weibo_response = requests.get(WEIBO_LIST_API_URL.format(uid=uid, page_num=1)).json()
     for card in weibo_response['data']['cards']:
         if 'mblog' in card:
@@ -105,11 +105,16 @@ def index(request, uid):
             status_id = status['id']
             if not cache.get(status_id):
                 description = format_status(request, status)
-                link = PEOPLE_WEIBO_FULLTEXT_URL.format(id=status_id)
+                url = PEOPLE_WEIBO_FULLTEXT_URL.format(id=status_id)
                 title = format_title(description)
-                item = FeedItem(title, description, link)
-                items.append(item)
+                item = {
+                    'id': url,
+                    'url': url,
+                    'title': title,
+                    'content_html': description
+                }
+                feed['items'].append(item)
                 cache.set(status_id, item, STATUS_TTL)
             else:
-                items.append(cache.get(status_id))
-    return render(request, 'rss/rss.xml', {'profile': profile, 'items': items}, content_type='text/xml')
+                feed['items'].append(cache.get(status_id))
+    return JsonResponse(feed)
