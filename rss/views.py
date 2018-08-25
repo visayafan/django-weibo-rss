@@ -48,9 +48,11 @@ def format_status(request, status):
     if 'retweeted_status' in status:
         description += '<br/><br/>'
         retweeted_user = status['retweeted_status']['user']
-        description += '<div style="border-left: 3px solid gray; padding-left: 1em;">转发<a href="{url}">@{name}</a>：{retweet}</div>'.format(
-            url=retweeted_user['profile_url'],
-            name=retweeted_user['screen_name'], retweet=format_status(request, status['retweeted_status']))
+        description += ('<div style="border-left: 3px solid gray; padding-left: 1em;">'
+                        '转发<a href="{url}">@{name}</a>：{retweet}'
+                        '</div>').format(url=retweeted_user['profile_url'],
+                                         name=retweeted_user['screen_name'],
+                                         retweet=format_status(request, status['retweeted_status']))
     # 处理表情图标，默认表情图标全部转成文字
     b = BeautifulSoup(description, 'html.parser')
     if not request.GET.get('emoji'):
