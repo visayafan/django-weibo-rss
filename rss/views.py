@@ -79,11 +79,17 @@ def format_status(request, status):
 # 处理微博标题
 def format_title(description):
     b = BeautifulSoup(description, 'html.parser')
+    # 去除掉HTML标签
+    cleaned_des = b.text.strip()
+    # 若微博正文中含有【】则将其包含内容作为标题
+    rst = re.search(r'【(.*?)】', cleaned_des)
+    if rst:
+        return rst.group(1)
     # 若微博内容文字少则直接做为标题
-    if len(b.text.strip()) <= TITLE_MAX_LENGTH:
+    if len(cleaned_des) <= TITLE_MAX_LENGTH:
         return b.text
     # 否则取第1句的前TITLE_MAX_LENGTH个字符作为标题
-    return re.split(r'[,.!?:;，。！？：；\s]', b.text.strip())[0][:TITLE_MAX_LENGTH] + '...'
+    return re.split(r'[,.!?:;，。！？：；\s]', cleaned_des)[0][:TITLE_MAX_LENGTH] + '...'
 
 
 @cache_page(timeout=INDEX_TTL)
