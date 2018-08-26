@@ -1,44 +1,85 @@
 <!DOCTYPE html>
 <html>
 <head>
-    {% load bootstrap3 %}
-    {% bootstrap_css %}
-    {% bootstrap_javascript %}
+    <meta charset="UTF-8">
+    <meta name="renderer" content="webkit"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>新浪微博RSS订阅</title>
+    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.0/css/bootstrap.min.css">
+    <style>
+        .content {
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 15px;
+        }
+
+        .head {
+            margin-top: 50px;
+        }
+
+        .intro {
+            margin-top: 30px;
+        }
+
+        .result {
+            margin-top: 20px;
+        }
+
+        .reader-list {
+            margin-top: 20px;
+        }
+    </style>
 </head>
+<html>
 <body>
-<h1 style="text-align: center;">django-weibo-rss</h1>
 <div class="container">
     <div class="row">
-        <div class="col-md-2"></div>
-        <div class="col-md-8">
-            <form action="." method="post" class="form">
-                {% csrf_token %}
-                <div class="input-group">
-                    {% if origin_url %}
-                        <input type="text" class="form-control" name="url" value="{{ origin_url }}">
-                    {% else %}
-                        <input type="text" class="form-control" name="url" placeholder="输入微博地址，例如：https://weibo.com/rmrb?refer_flag=1005055013_">
-                    {% endif %}
-                    <span class="input-group-btn">
-                        <button class="btn btn-default" type="submit">生成订阅地址</button>
-                   </span>
-                </div>
-            </form>
-            {% if url %}
-                <p></p>
-                <p>RSS订阅地址：</p>
-                <input type="text" class="form-control" name="url" value="{{ url }}" readonly="true"/><p></p>
-                <ul>
-                    <li><a href="https://www.inoreader.com/?add_feed={{ url }}">订阅到Inoreader</a></li>
-                    <li><a href="https://cloud.feedly.com/#subscription/feed/{{ url }}">订阅到Feedly</a></li>
-                    <li><a href="https://theoldreader.com/feeds/subscribe?url={{ url }}">订阅到TheOldReader</a></li>
-                </ul>
-            {% endif %}
+        <div class="content">
+            <div class="head">
+                <h2 class="text-center">django-weibo-rss</h2>
+                <p class="intro">优雅地使用 RSS 阅读器订阅喜欢的微博博主</p>
+                <p>1. 在输入框中粘贴你想订阅的微博地址<br>2. 点击“生成订阅地址”按钮</p>
+                <form action="." method="post" class="form">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        {% if origin_url %}
+                            <input type="text" class="form-control" name="url" value="{{ origin_url }}">
+                        {% else %}
+                            <input type="text" class="form-control" name="url" placeholder="https://weibo.com/rmrb?refer_flag=1005055013_">
+                        {% endif %}
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" type="submit">生成订阅地址</button>
+                        </span>
+                    </div>
+                </form>
+            </div>
+            <div class="result">
+                {% if url %}
+                    <p>RSS订阅地址：</p>
+                    <div class="input-group">
+                        <input id="clip" type="text" class="form-control" name="url" value="{{ url }}" readonly="true"/>
+                        <p></p>
+                        <span class="input-group-btn">
+                            <button data-clipboard-target="#clip" class="btn btn-default" type="submit">复制到剪切板</button>
+                        </span>
+                    </div>
+                    <ul class="reader-list">
+                        <li><a href="https://www.inoreader.com/?add_feed={{ url }}">订阅到Inoreader</a></li>
+                        <li><a href="https://cloud.feedly.com/#subscription/feed/{{ url }}">订阅到Feedly</a></li>
+                        <li><a href="https://theoldreader.com/feeds/subscribe?url={{ url }}">订阅到TheOldReader</a></li>
+                    </ul>
+                {% endif %}
+            </div>
         </div>
-        <div class="col-md-2"></div>
-
     </div>
 </div>
+</div>
 </body>
-
-
+<script type='text/javascript' src="https://cdn.staticfile.org/clipboard.js/1.5.15/clipboard.min.js"></script>
+<script type='text/javascript'>
+    new Clipboard(".btn");
+</script>
+<script>
+</script>
+</html>

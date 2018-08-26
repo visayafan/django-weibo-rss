@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rss',
     'rest_framework',
-    'bootstrap3'
 ]
 
 MIDDLEWARE = [
