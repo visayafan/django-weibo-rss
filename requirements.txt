@@ -2,3 +2,5 @@ requests==2.19.1
 Django==2.1
 beautifulsoup4==4.6.3
 djangorestframework==3.8.2
+whitenoise==4.0
+gunicorn==19.9.0
