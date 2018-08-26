@@ -54,12 +54,11 @@
                     </div>
                 </form>
             </div>
-            <div class="result">
-                {% if url %}
+            {% if url %}
+                <div class="result">
                     <p>RSS订阅地址：</p>
                     <div class="input-group">
                         <input id="clip" type="text" class="form-control" name="url" readonly="true"/>
-                        <p></p>
                         <span class="input-group-btn">
                             <button data-clipboard-target="#clip" class="btn btn-default" type="submit">复制到剪切板</button>
                         </span>
@@ -69,11 +68,14 @@
                         <li><a id="feedly" href="" target="_blank">订阅到Feedly</a></li>
                         <li><a id="theoldreader" href="" target="_blank">订阅到TheOldReader</a></li>
                     </ul>
-                {% endif %}
-            </div>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
+<div class="navbar navbar-fixed-bottom">
+        <p class="text-mute text-center">Powered by <a href="https://github.com/visayafan/django-weibo-rss" target="_blank">django-weibo-rss</a>. Inspired by  <a href="https://github.com/zgq354/weibo-rss" target="_blank">weibo-rss</a>. .
+        </p>
 </div>
 </body>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -81,7 +83,7 @@
 <script type='text/javascript'>
     new Clipboard(".btn");
 
-    var prefix = {
+    let prefix = {
         inoreader: "https://www.inoreader.com/?add_feed=",
         feedly: "https://cloud.feedly.com/#subscription/feed/",
         theoldreader: "https://theoldreader.com/feeds/subscribe?url="
