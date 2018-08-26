@@ -4,4 +4,4 @@ Python版本为3.6，Django版本为2.1。其它需要安装的模块见requirem
 
 > python manage.py runserver
 
-运行起来后微博rss订阅链接为 `rss/weibo/{uid}`，例如 `http://127.0.0.1:8000/rss/weibo/5997748429/`
+运行起来后微博rss订阅链接为 `/weibo/{uid}`，例如 `http://127.0.0.1:8000/weibo/5997748429/`

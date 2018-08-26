@@ -4,6 +4,8 @@ import requests
 from bs4 import BeautifulSoup
 from django.core.cache import cache
 from django.http import JsonResponse
+from django.shortcuts import render
+from django.urls import reverse
 from django.views.decorators.cache import cache_page
 
 WEIBO_API_ROOT = 'https://m.weibo.cn/'
@@ -124,3 +126,14 @@ def index(request, uid):
             else:
                 feed['items'].append(cache.get(status_id))
     return JsonResponse(feed)
+
+
+def home(request):
+    url = None
+    origin_url = None
+    if request.method == 'POST':
+        # 移动端访问时若访问地址为域名访问则会跳转到ID访问，例如https://weibo.com/rmrb会跳转到https://m.weibo.cn/u/2803301701，跳转后链接在r.url中
+        origin_url = request.POST.get('url')
+        r = requests.get(origin_url, headers={'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit'})
+        url = request.build_absolute_uri(reverse('weibo', args=[r.url.split('/')[-1]]))
+    return render(request, 'rss/home.html', {'url': url, 'origin_url': origin_url})

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {% load bootstrap3 %}
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
+</head>
+<body>
+<h1 style="text-align: center;">django-weibo-rss</h1>
+<div class="container">
+    <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-md-8">
+            <form action="." method="post" class="form">
+                {% csrf_token %}
+                <div class="input-group">
+                    {% if origin_url %}
+                        <input type="text" class="form-control" name="url" value="{{ origin_url }}">
+                    {% else %}
+                        <input type="text" class="form-control" name="url" placeholder="输入微博地址，例如：https://weibo.com/rmrb?refer_flag=1005055013_">
+                    {% endif %}
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="submit">生成订阅地址</button>
+                   </span>
+                </div>
+            </form>
+            {% if url %}
+                <p></p>
+                <p>RSS订阅地址：</p>
+                <input type="text" class="form-control" name="url" value="{{ url }}" readonly="true"/><p></p>
+                <ul>
+                    <li><a href="https://www.inoreader.com/?add_feed={{ url }}">订阅到Inoreader</a></li>
+                    <li><a href="https://cloud.feedly.com/#subscription/feed/{{ url }}">订阅到Feedly</a></li>
+                    <li><a href="https://theoldreader.com/feeds/subscribe?url={{ url }}">订阅到TheOldReader</a></li>
+                </ul>
+            {% endif %}
+        </div>
+        <div class="col-md-2"></div>
+
+    </div>
+</div>
+</body>
+
+
