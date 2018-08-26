@@ -1,3 +1,4 @@
+import json
 import re
 
 import requests
@@ -94,6 +95,32 @@ def format_title(description):
     return re.split(r'[,.!?:;，。！？：；\s]', cleaned_des)[0][:TITLE_MAX_LENGTH] + '...'
 
 
+def filter_status(request, items):
+    exs_list = []
+    ins_list = []
+    try:
+        with open('filter.json', encoding='utf-8') as file:
+            fg = json.load(file)
+            exs_list = fg['exclude']
+            ins_list = fg['include']
+    except IOError:
+        pass
+
+    # exclude=a|b|c，若微博内容包含a,b,c中任何一个则过滤掉
+    exs = request.GET.get('exclude')
+    if exs:
+        exs_list.extend(exs.split('|'))
+    if exs_list:
+        items = [item for item in items if not any(ex in item['content_html'] for ex in exs_list)]
+    # include=a|b|c，当微博内容包含a,b,c中任意一个时才保留，否则过滤
+    ins = request.GET.get('include')
+    if ins:
+        ins_list.extend(ins.split('|'))
+    if ins_list:
+        items = [item for item in items if any(i in item['content_html'] for i in ins_list)]
+    return items
+
+
 @cache_page(timeout=INDEX_TTL)
 def index(request, uid):
     p = requests.get(PEOPLE_DETAIL_API_URL.format(uid=uid)).json()['data']['userInfo']
@@ -107,6 +134,7 @@ def index(request, uid):
     }
     # 获取用户最近的微博
     weibo_response = requests.get(WEIBO_LIST_API_URL.format(uid=uid, page_num=1)).json()
+    items = []
     for card in weibo_response['data']['cards']:
         if 'mblog' in card:
             status = card['mblog']
@@ -121,10 +149,11 @@ def index(request, uid):
                     'title': title,
                     'content_html': description
                 }
-                feed['items'].append(item)
+                items.append(item)
                 cache.set(status_id, item, STATUS_TTL)
             else:
-                feed['items'].append(cache.get(status_id))
+                items.append(cache.get(status_id))
+    feed['items'] = filter_status(request, items)
     return JsonResponse(feed)
 
 
