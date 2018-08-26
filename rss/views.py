@@ -135,5 +135,5 @@ def home(request):
         # 移动端访问时若访问地址为域名访问则会跳转到ID访问，例如https://weibo.com/rmrb会跳转到https://m.weibo.cn/u/2803301701，跳转后链接在r.url中
         origin_url = request.POST.get('url')
         r = requests.get(origin_url, headers={'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit'})
-        url = 'http://{domain}{weibo_url}'.format(domain=request.META['HTTP_HOST'], weibo_url=reverse('weibo', args=[r.url.split('/')[-1]]))
+        url = reverse('weibo', args=[r.url.split('/')[-1]])
     return render(request, 'rss/home.html', {'url': url, 'origin_url': origin_url})
