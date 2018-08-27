@@ -70,6 +70,7 @@ def fangeqiang(request):
 
 
 # 墙外楼去广告
+@cache_page(timeout=60 * 60 * 3)
 def letscorp(request):
     letscorp_feed_url = 'http://feeds.feedburner.com/letscorp/aDmw?format=xml'
     b = BeautifulSoup(requests.get(letscorp_feed_url).content, 'xml')
@@ -82,15 +83,24 @@ def letscorp(request):
     }
     for item in b.find_all('item'):
         post_url = item.guid.string
-        content = item.find('content:encoded').string
-        # 去广告
-        content = content[:content.find('<span>镜像链接：</span>')]
-        # 段落缩进
-        content = re.sub(r'<p>\u3000+', '<p style="text-indent:2em;">', content)
-        feed['items'].append({
+        post_title = item.title.string
+        dit = {
             'id': post_url,
-            'title': item.title.string,
-            'url': post_url,
-            'content_html': content
-        })
+            'title': post_title,
+            'url': post_url
+        }
+        if not cache.get(post_url):
+            content = item.find('content:encoded').string
+            # 去广告
+            content = content[:content.find('<span>镜像链接：</span>')]
+            # 段落缩进
+            content = re.sub(r'<p>\u3000*', '<p>\u3000\u3000', content)
+            # 换行变分段
+            content = content.replace('<br />', '</p><p>')
+            dit['content_html'] = content
+            feed['items'].append(dit)
+            cache.set(post_url, content)
+        else:
+            dit['content_html'] = cache.get(post_url)
+            feed['items'].append(dit)
     return JsonResponse(feed)
