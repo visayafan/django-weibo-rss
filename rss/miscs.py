@@ -1,3 +1,5 @@
+import re
+
 import requests
 from bs4 import BeautifulSoup
 from django.core.cache import cache
@@ -80,11 +82,15 @@ def letscorp(request):
     }
     for item in b.find_all('item'):
         post_url = item.guid.string
-        ch = item.find('content:encoded').string
+        content = item.find('content:encoded').string
+        # 去广告
+        content = content[:content.find('<span>镜像链接：</span>')]
+        # 段落缩进
+        content = re.sub(r'<p>\u3000+', '<p style="text-indent:2em;">', content)
         feed['items'].append({
             'id': post_url,
             'title': item.title.string,
             'url': post_url,
-            'content_html': ch[:ch.find('<span>镜像链接：</span>')]
+            'content_html': content
         })
     return JsonResponse(feed)
