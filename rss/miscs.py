@@ -1,7 +1,9 @@
 import re
 
 import requests
+import rfc3339
 from bs4 import BeautifulSoup
+from dateutil import parser
 from django.core.cache import cache
 from django.http import JsonResponse
 from django.views.decorators.cache import cache_page
@@ -76,21 +78,23 @@ def letscorp(request):
     b = BeautifulSoup(requests.get(letscorp_feed_url).content, 'xml')
     feed = {
         'version': 'https://jsonfeed.org/version/1',
-        'title': b.rss.channel.title.string,
-        'description': b.rss.channel.description.string,
-        'home_page_url': b.rss.channel.link.string,
+        'title': b.rss.channel.title.text,
+        'description': b.rss.channel.description.text,
+        'home_page_url': b.rss.channel.link.text,
         'items': []
     }
     for item in b.find_all('item'):
-        post_url = item.guid.string
-        post_title = item.title.string
+        post_url = item.guid.text
+        post_title = item.title.text
+        post_date = rfc3339.rfc3339(parser.parse(item.pubDate.text))
         dit = {
             'id': post_url,
             'title': post_title,
-            'url': post_url
+            'url': post_url,
+            'date_published': post_date
         }
         if not cache.get(post_url):
-            content = item.find('content:encoded').string
+            content = item.find('content:encoded').text
             # 去广告
             content = content[:content.find('<span>镜像链接：</span>')]
             # 段落缩进

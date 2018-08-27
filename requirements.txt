@@ -1,6 +1,9 @@
+rfc3339==6.0
+python-dateutil==2.7.3
 requests==2.19.1
 Django==2.1
 beautifulsoup4==4.6.3
 djangorestframework==3.8.2
 whitenoise==4.0
 gunicorn==19.9.0
+lxml==4.2.4
