@@ -1,5 +1,3 @@
-import logging
-
 import requests
 from bs4 import BeautifulSoup
 from django.core.cache import cache
@@ -66,4 +64,27 @@ def fangeqiang(request):
                     'title': title,
                     'content_html': description
                 })
+    return JsonResponse(feed)
+
+
+# 墙外楼去广告
+def letscorp(request):
+    letscorp_feed_url = 'http://feeds.feedburner.com/letscorp/aDmw?format=xml'
+    b = BeautifulSoup(requests.get(letscorp_feed_url).content, 'xml')
+    feed = {
+        'version': 'https://jsonfeed.org/version/1',
+        'title': b.rss.channel.title.string,
+        'description': b.rss.channel.description.string,
+        'home_page_url': b.rss.channel.link.string,
+        'items': []
+    }
+    for item in b.find_all('item'):
+        post_url = item.guid.string
+        ch = item.find('content:encoded').string
+        feed['items'].append({
+            'id': post_url,
+            'title': item.title.string,
+            'url': post_url,
+            'content_html': ch[:ch.find('<span>镜像链接：</span>')]
+        })
     return JsonResponse(feed)

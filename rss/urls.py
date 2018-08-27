@@ -7,4 +7,5 @@ urlpatterns = [
     path('weibo/<str:uid>/', views.index, name='weibo'),
     path('miscs/dazuoshou/', miscs.dazuoshou),
     path('miscs/fangeqiang/', miscs.fangeqiang),
+    path('miscs/letscorp/', miscs.letscorp),
 ]
