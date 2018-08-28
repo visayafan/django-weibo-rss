@@ -29,13 +29,6 @@ STATUS_TTL = 60 * 60 * 24 * 3
 INDEX_TTL = 60 * 60 * 3
 
 
-class FeedItem:
-    def __init__(self, title, description, link):
-        self.title = title
-        self.description = description
-        self.link = link
-
-
 # 获取微博全文
 def get_full_text(status):
     if 'isLongText' in status:

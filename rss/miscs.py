@@ -101,6 +101,15 @@ def letscorp(request):
             content = re.sub(r'<p>\u3000*', '<p>\u3000\u3000', content)
             # 换行变分段
             content = content.replace('<br />', '</p><p>')
+            bs = BeautifulSoup(content, 'html.parser')
+            # 删除相关日志
+            rpt = bs.find('h2', class_='related_post_title')
+            if rpt:
+                rpt.extract()
+            rp = bs.find('ul', class_='related_post')
+            if rp:
+                rp.extract()
+            content = str(bs)
             dit['content_html'] = content
             feed['items'].append(dit)
             cache.set(post_url, content)
