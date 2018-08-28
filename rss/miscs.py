@@ -5,7 +5,7 @@ import rfc3339
 from bs4 import BeautifulSoup
 from dateutil import parser
 from django.core.cache import cache
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.cache import cache_page
 
 
@@ -108,3 +108,25 @@ def letscorp(request):
             dit['content_html'] = cache.get(post_url)
             feed['items'].append(dit)
     return JsonResponse(feed)
+
+
+# 联合早报，用了feedx.net的订阅源
+def zaobaotoday(request):
+    zaobao_feed_url = 'https://feedx.net/rss/zaobaotoday.xml'
+    b = BeautifulSoup(requests.get(zaobao_feed_url).content, 'xml')
+    item_list = []
+    for item in b.find_all('item'):
+        if item.title.text not in item_list:
+            item_list.append(item.title.text)
+            # 段落缩进
+            dt = item.description.text.replace('<p>', '<p>\u3000\u3000')
+            # 去掉广告及推荐
+            dtb = BeautifulSoup(dt, 'xml')
+            tag = dtb.find('div', class_='tagcloud')
+            if tag:
+                tag.extract()
+                dt = str(dtb)
+            item.description.string.replace_with(dt)
+        else:
+            item.extract()
+    return HttpResponse(str(b), content_type='application/xml')
