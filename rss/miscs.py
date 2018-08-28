@@ -111,6 +111,7 @@ def letscorp(request):
 
 
 # 联合早报，用了feedx.net的订阅源
+@cache_page(timeout=60 * 60 * 12)
 def zaobaotoday(request):
     zaobao_feed_url = 'https://feedx.net/rss/zaobaotoday.xml'
     b = BeautifulSoup(requests.get(zaobao_feed_url).content, 'xml')

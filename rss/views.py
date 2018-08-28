@@ -22,7 +22,7 @@ PEOPLE_WEIBO_HOME_URL = WEIBO_API_ROOT + '{uid}'
 # 微博全文
 PEOPLE_WEIBO_FULLTEXT_URL = WEIBO_API_ROOT + 'status/{id}'
 # 最大标题长度
-TITLE_MAX_LENGTH = 20
+TITLE_MAX_LENGTH = 30
 # 微博缓存时间3天
 STATUS_TTL = 60 * 60 * 24 * 3
 # 避免频繁抓取微博，3小时更新一次
@@ -92,7 +92,11 @@ def format_title(description):
     if len(cleaned_des) <= TITLE_MAX_LENGTH:
         return b.text
     # 否则取第1句的前TITLE_MAX_LENGTH个字符作为标题
-    return re.split(r'[,.!?:;，。！？：；\s]', cleaned_des)[0][:TITLE_MAX_LENGTH] + '...'
+    title = cleaned_des[:TITLE_MAX_LENGTH]
+    sear = re.search(r'[,.!?:;，。！？：；\s]', title[::-1])
+    if sear:
+        title = title[:-sear.end()]
+    return title
 
 
 def filter_status(request, items):
