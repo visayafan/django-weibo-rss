@@ -121,11 +121,9 @@ def zaobaotoday(request):
             # 段落缩进
             dt = item.description.text.replace('<p>', '<p>\u3000\u3000')
             # 去掉广告及推荐
-            dtb = BeautifulSoup(dt, 'xml')
-            tag = dtb.find('div', class_='tagcloud')
-            if tag:
-                tag.extract()
-                dt = str(dtb)
+            pos = dt.find('<div class="tagcloud">')
+            if pos != -1:
+                dt = dt[:pos]
             item.description.string.replace_with(dt)
         else:
             item.extract()
