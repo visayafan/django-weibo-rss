@@ -1,5 +1,7 @@
 import json
+import logging
 import re
+from json import JSONDecodeError
 
 import requests
 from bs4 import BeautifulSoup
@@ -31,9 +33,14 @@ INDEX_TTL = 60 * 60 * 3
 
 # 获取微博全文
 def get_full_text(status):
-    if 'isLongText' in status:
-        long_status = requests.get(STATUS_DETAIL_API_URL.format(id=status['id'])).json()
-        return long_status['data']['text']
+    if 'isLongText' in status and status['isLongText']:
+        # 有些微博无法查看全文
+        try:
+            long_status = requests.get(STATUS_DETAIL_API_URL.format(id=status['id'])).json()
+            return long_status['data']['text']
+        except JSONDecodeError:
+            logging.warning('查看全文失败：' + STATUS_DETAIL_API_URL.format(id=status['id']))
+            pass
     return status['text']
 
 
@@ -86,7 +93,7 @@ def format_title(description):
         return b.text
     # 否则取第1句的前TITLE_MAX_LENGTH个字符作为标题
     title = cleaned_des[:TITLE_MAX_LENGTH]
-    sear = re.search(r'[,.!?:;，。！？：；\s]', title[::-1])
+    sear = re.search(r'[,.!?;，。！？；\s]', title[::-1])
     if sear:
         title = title[:-sear.end()]
     return title

@@ -97,10 +97,10 @@ def letscorp(request):
             content = item.find('content:encoded').text
             # 去广告
             content = content[:content.find('<span>镜像链接：</span>')]
-            # 段落缩进
-            content = re.sub(r'<p>\u3000*', '<p>\u3000\u3000', content)
             # 换行变分段
             content = content.replace('<br />', '</p><p>')
+            # 段落缩进
+            content = re.sub(r'<p>(\n)?\u3000*', '<p>\u3000\u3000', content)
             bs = BeautifulSoup(content, 'html.parser')
             # 删除相关日志
             rpt = bs.find('h2', class_='related_post_title')
