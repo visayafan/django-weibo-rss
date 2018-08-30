@@ -52,7 +52,7 @@ def format_status(request, status):
         description += '<br/><br/>'
         retweeted_user = status['retweeted_status']['user']
         description += ('<div style="border-left: 3px solid gray; padding-left: 1em;">'
-                        '转发<a href="{url}">@{name}</a>：{retweet}'
+                        '<a href="{url}">@{name}</a>：{retweet}'
                         '</div>').format(url=retweeted_user['profile_url'],
                                          name=retweeted_user['screen_name'],
                                          retweet=format_status(request, status['retweeted_status']))
