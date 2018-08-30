@@ -128,11 +128,12 @@ def letscorp(request):
             rp = bs.find('ul', class_='related_post')
             if rp:
                 rp.decompose()
+
+            content = str(bs)
             # 换行变分段
             content = content.replace('<br />', '</p><p>')
             # 段落缩进
             content = re.sub(r'<p>(\n)?\u3000*', '<p>\u3000\u3000', content)
-            content = str(bs)
             dit['content_html'] = content
             feed['items'].append(dit)
             cache.set(post_url, content)
