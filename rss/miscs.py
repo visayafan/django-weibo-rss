@@ -96,7 +96,12 @@ def letscorp(request):
         if not cache.get(post_url):
             content = item.find('content:encoded').text
             # 去广告
-            content = content[:content.find('<span>镜像链接：</span>')]
+            ad1 = content.find('<span>镜像链接：</span>')
+            if ad1 != -1:
+                content = content[:ad1]
+            ad2 = content.find('<a href="http://www.amazon.com/gp/product')
+            if ad2 != -1:
+                content = content[:ad2]
             # 换行变分段
             content = content.replace('<br />', '</p><p>')
             # 段落缩进
