@@ -106,7 +106,7 @@ def letscorp(request):
             # 所有在href属性包含在ads_href_list的超链接会被删掉
             ads_href_list = ['amazon.com/gp',
                              'chrome.google.com/webstore']
-            all_ads_link = bs.find_all(lambda tag: tag.name == 'a' and (tag.has_attr('href') and any(x for x in ads_href_list if x in tag.get('href'))))
+            all_ads_link = bs.find_all(lambda tag: tag.name == 'a' and (tag.has_attr('href') and any(x in tag.get('href') for x in ads_href_list)))
             if all_ads_link:
                 for link in all_ads_link:
                     link.decompose()
@@ -118,7 +118,7 @@ def letscorp(request):
 
             # 删除广告图片
             ads_keywords = ['letscorp/aDmw']
-            ads_images = bs.find_all(lambda tag: tag.name == 'img' and (tag.has_attr('src') and any(x for x in ads_keywords if x in tag.get('src'))))
+            ads_images = bs.find_all(lambda tag: tag.name == 'img' and (tag.has_attr('src') and any(x in tag.get('src') for x in ads_keywords)))
             if ads_images:
                 for image in ads_images:
                     image.decompose()

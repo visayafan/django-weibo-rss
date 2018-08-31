@@ -1,4 +1,4 @@
-PIL
+Pillow
 wget
 rfc3339
 python-dateutil
