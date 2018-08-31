@@ -8,11 +8,13 @@ from django.core.cache import cache
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.cache import cache_page
 
-
 # 此文件与生成微博rss订阅源无关，私用备份
 
 
 # 大作手通知更新缓慢，设置24小时缓存，这样24小时内再次访问时直接返回缓存中的上次访问的rss/rss.xml，缓存到期后才再次执行函数体中的内容并更新缓存中的rss.xml
+from hanziconv import HanziConv
+
+
 @cache_page(timeout=60 * 60 * 24)
 def dazuoshou(request):
     feed = {
@@ -134,6 +136,8 @@ def letscorp(request):
             content = content.replace('<br />', '</p><p>')
             # 段落缩进
             content = re.sub(r'<p>(\n)?\u3000*', '<p>\u3000\u3000', content)
+            # 繁体转简体
+            content = HanziConv.toSimplified(content)
             dit['content_html'] = content
             feed['items'].append(dit)
             cache.set(post_url, content)

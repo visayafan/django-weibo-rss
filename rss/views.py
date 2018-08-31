@@ -1,7 +1,9 @@
 import json
 import logging
+import os
 import re
 from json import JSONDecodeError
+from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup
@@ -57,18 +59,29 @@ def format_status(request, status):
                                          name=retweeted_user['screen_name'],
                                          retweet=format_status(request, status['retweeted_status']))
     # 处理表情图标，默认表情图标全部转成文字
+    # b = BeautifulSoup(description, 'html.parser')
+    # if not request.GET.get('emoji'):
+    #     icons = b.find_all('span', class_='url-icon')
+    #     # 去掉位置/链接前的图标，太大太难看
+    #     if icons is not None:
+    #         for icon in icons:
+    #             # 表情图标img标签的alt值类似"[哈哈]"
+    #             if icon.img.has_attr('alt') and ('[' in icon.img.get('alt')):
+    #                 icon.replace_with(icon.img.get('alt'))
+    #             # 不是表情图标直接删除，例如文章链接、地理位置前的图标
+    #             else:
+    #                 icon.decompose()
+
+    # 表情图标用已经处理过的小图标
     b = BeautifulSoup(description, 'html.parser')
-    if not request.GET.get('emoji'):
-        icons = b.find_all('span', class_='url-icon')
-        # 去掉位置/链接前的图标，太大太难看
-        if icons is not None:
-            for icon in icons:
-                # 表情图标img标签的alt值类似"[哈哈]"
-                if icon.img.has_attr('alt') and ('[' in icon.img.get('alt')):
-                    icon.replace_with(icon.img.get('alt'))
-                # 不是表情图标直接删除，例如文章链接、地理位置前的图标
-                else:
-                    icon.decompose()
+    emojis_tag = b.find_all('span', class_='url-icon')
+    if emojis_tag:
+        for emoji_tag in emojis_tag:
+            if emoji_tag.img.has_attr('alt') and '[' in emoji_tag.img.get('alt'):
+                emoji_filename = emoji_tag.img.get('src').split('/')[-1]
+                url_to_emoji = urljoin('http://45.76.148.189:82', 'images', emoji_filename)
+                emoji_tag.img['src'] = os.path.join('images', url_to_emoji)
+
     description = str(b)
     # 后跟所有图片
     if 'pics' in status:

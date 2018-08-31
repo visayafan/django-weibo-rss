@@ -1,3 +1,5 @@
+PIL
+wget
 rfc3339==6.0
 python-dateutil==2.7.3
 requests==2.19.1
