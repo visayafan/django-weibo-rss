@@ -36,6 +36,9 @@ STATUS_TTL = 60 * 60 * 24 * 3
 INDEX_TTL = 60 * 60 * 3
 
 mark = 0
+MY_HOST = 'http://45.76.148.189:81'
+
+logging.basicConfig(level=logging.INFO)
 
 
 # 获取微博全文
@@ -66,14 +69,15 @@ def format_emoji_resize(description, emoji_dir, emoji_size):
             url = emoji_tag.img.get('src')
             emoji_name = url.split('/')[-1]
             os.makedirs(emoji_dir, exist_ok=True)
+            emoji_dir_full_path = os.path.join(emoji_dir, emoji_name)
             if emoji_name not in get_emoji_by_listdir(emoji_dir, mark):
                 if url.startswith('//'):
                     url = 'http:' + url
                 logging.info('正在下载emoji:' + url)
-                wget.download(url, os.path.join(emoji_dir, emoji_name))
-                Image.open(os.path.join(emoji_dir, emoji_name)).resize(emoji_size).save(os.path.join(emoji_dir, emoji_name))
+                wget.download(url, emoji_dir_full_path)
+                Image.open(emoji_dir_full_path).resize(emoji_size).save(emoji_dir_full_path)
                 mark = mark + 1
-            emoji_tag.img['src'] = '/'.join(['http://45.76.148.189:81', emoji_dir, emoji_name])
+            emoji_tag.img['src'] = '/'.join([MY_HOST, emoji_dir, emoji_name])
     return b
 
 

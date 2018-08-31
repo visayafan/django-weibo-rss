@@ -91,7 +91,7 @@ def letscorp(request):
         post_date = rfc3339.rfc3339(parser.parse(item.pubDate.text))
         dit = {
             'id': post_url,
-            'title': post_title,
+            'title': HanziConv.toSimplified(post_title),
             'url': post_url,
             'date_published': post_date
         }
