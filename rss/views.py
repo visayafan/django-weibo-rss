@@ -36,7 +36,7 @@ STATUS_TTL = 60 * 60 * 24 * 3
 INDEX_TTL = 60 * 60 * 3
 
 mark = 0
-MY_HOST = 'http://45.76.148.189:81'
+MY_HOST = 'http://45.76.148.189'
 
 logging.basicConfig(level=logging.INFO)
 
