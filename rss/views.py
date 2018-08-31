@@ -54,13 +54,16 @@ def format_emoji_resize(description, emoji_dir, emoji_size):
     emojis_tag = b.find_all('span', class_='url-icon')
     if emojis_tag:
         for emoji_tag in emojis_tag:
-            if emoji_tag.img.has_attr('alt') and '[' in emoji_tag.img.get('alt'):
-                emoji_name = emoji_tag.img.get('src').split('/')[-1]
-                if emoji_name not in os.listdir(emoji_dir):
-                    logging.info('正在下载emoji:' + emoji_tag.img.get('alt'))
-                    wget.download('http:' + emoji_tag.img.get('src'), os.path.join(emoji_dir, emoji_name))
-                    Image.open(os.path.join(emoji_dir, emoji_name)).resize(emoji_size).save(os.path.join(emoji_dir, emoji_name))
-                emoji_tag.img['src'] = '/'.join(['http://45.76.148.189:81', emoji_dir, emoji_name])
+            url = emoji_tag.img.get('src')
+            emoji_name = url.split('/')[-1]
+            if emoji_name not in os.listdir(emoji_dir):
+                if url.startswith('//'):
+                    url = 'http:' + url
+                logging.info('正在下载emoji:' + url)
+                os.makedirs(emoji_dir, exist_ok=True)
+                wget.download(url, os.path.join(emoji_dir, emoji_name))
+                Image.open(os.path.join(emoji_dir, emoji_name)).resize(emoji_size).save(os.path.join(emoji_dir, emoji_name))
+            emoji_tag.img['src'] = '/'.join(['http://45.76.148.189:81', emoji_dir, emoji_name])
     return b
 
 
