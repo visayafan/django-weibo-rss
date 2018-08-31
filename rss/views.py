@@ -36,7 +36,6 @@ STATUS_TTL = 60 * 60 * 24 * 3
 INDEX_TTL = 60 * 60 * 3
 
 mark = 0
-MY_HOST = 'http://45.76.148.189'
 
 logging.basicConfig(level=logging.INFO)
 
@@ -60,7 +59,7 @@ def get_emoji_by_listdir(emoji_dir, mark):
 
 
 # 表情图标用已经处理过的小图标
-def format_emoji_resize(description, emoji_dir, emoji_size):
+def format_emoji_resize(request, description, emoji_dir, emoji_size):
     global mark
     b = BeautifulSoup(description, 'html.parser')
     emojis_tag = b.find_all('span', class_='url-icon')
@@ -77,7 +76,7 @@ def format_emoji_resize(description, emoji_dir, emoji_size):
                 wget.download(url, emoji_dir_full_path)
                 Image.open(emoji_dir_full_path).resize(emoji_size).save(emoji_dir_full_path)
                 mark = mark + 1
-            emoji_tag.img['src'] = '/'.join([MY_HOST, emoji_dir, emoji_name])
+            emoji_tag.img['src'] = '/'.join([request.META['HTTP_HOST'], emoji_dir, emoji_name])
     return b
 
 
@@ -114,7 +113,7 @@ def format_status(request, status):
     emoji_dir = 'static/images'
     # emoji裁剪后的大小
     emoji_size = (17, 17)
-    b = format_emoji_resize(description, emoji_dir, emoji_size)
+    b = format_emoji_resize(request, description, emoji_dir, emoji_size)
 
     description = str(b)
     # 后跟所有图片
