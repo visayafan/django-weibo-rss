@@ -107,7 +107,7 @@ def format_status(request, status):
         description += '<br/><br/>'
         retweeted_user = status['retweeted_status']['user']
         description += ('<div style="border-left: 3px solid gray; padding-left: 1em;">'
-                        '<a href="{url}">@{name}</a>：{retweet}'
+                        '@<a href="{url}">{name}</a>：{retweet}'
                         '</div>').format(url=retweeted_user['profile_url'],
                                          name=retweeted_user['screen_name'],
                                          retweet=format_status(request, status['retweeted_status']))
@@ -116,7 +116,6 @@ def format_status(request, status):
     # emoji裁剪后的大小
     emoji_size = (17, 17)
     b = format_emoji_resize(request, description, emoji_dir, emoji_size)
-
     description = str(b)
     # 后跟所有图片
     if 'pics' in status:
@@ -218,5 +217,5 @@ def home(request):
         r = requests.get(origin_url, headers={'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit'})
         uid = r.url.split('/')[-1]
         uid = re.match(r'\d+', uid).group(0)
-        url = reverse('weibo', args=[uid])
+        url = 'http://' + request.META['HTTP_HOST'] + reverse('weibo', args=[uid])
     return render(request, 'rss/home.html', {'url': url, 'origin_url': origin_url})

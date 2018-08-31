@@ -57,40 +57,22 @@
             {% if url %}
                 <div class="result">
                     <p>RSS订阅地址：</p>
-                        <input id="clip" type="text" class="form-control" name="url" />
-                    </div>
-                    <ul class="reader-list">
-                        <li><a id="inoreader" href="" target="_blank">订阅到 Inoreader</a></li>
-                        <li><a id="feedly" href="" target="_blank">订阅到 Feedly</a></li>
-                        <li><a id="theoldreader" href="" target="_blank">订阅到 TheOldReader</a></li>
-                    </ul>
+                    <input id="clip" type="text" class="form-control" name="url" value="{{ url }}"/>
+                </div>
+                <ul class="reader-list">
+                    <li><a id="inoreader" href="https://www.inoreader.com/?add_feed={{ url }}" target="_blank">订阅到 Inoreader</a></li>
+                    <li><a id="feedly" href="https://feedly.com/i/subscription/{{ url }}" target="_blank">订阅到 Feedly</a></li>
+                    <li><a id="theoldreader" href="https://theoldreader.com/feeds/subscribe?url={{ url }}" target="_blank">订阅到 TheOldReader</a></li>
+                </ul>
                 </div>
             {% endif %}
-        </div>
     </div>
 </div>
+</div>
 <div class="navbar navbar-fixed-bottom">
-        <p class="text-mute text-center">Powered by <a href="https://github.com/visayafan/django-weibo-rss" target="_blank">django-weibo-rss</a>. Inspired by  <a href="https://github.com/zgq354/weibo-rss" target="_blank">weibo-rss</a>. .
-        </p>
+    <p class="text-mute text-center">Powered by <a href="https://github.com/visayafan/django-weibo-rss" target="_blank">django-weibo-rss</a>.
+        Inspired by <a href="https://github.com/zgq354/weibo-rss" target="_blank">weibo-rss</a>. .
+    </p>
 </div>
 </body>
-<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
-<script type='text/javascript'>
-
-    let prefix = {
-        inoreader: "https://www.inoreader.com/?add_feed=",
-        feedly: "https://feedly.com/i/subscription/",
-        theoldreader: "https://theoldreader.com/feeds/subscribe?url="
-    };
-
-    {% if url %}
-        let feed_url = new URL('{{ url }}', location.href).href;
-        $('#clip').val(feed_url);
-        for (let reader in prefix) {
-            $("#" + reader).attr("href", prefix[reader] + feed_url);
-        }
-    {% endif %}
-</script>
-<script>
-</script>
 </html>

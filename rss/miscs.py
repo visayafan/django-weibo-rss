@@ -16,7 +16,7 @@ from hanziconv import HanziConv
 
 
 def indent_paragraph(para):
-    return para.replace('<p>', '<p>\u3000\u3000')
+    return para.replace('<br />', '</p><p>').replace('<p>', '<p>\u3000\u3000')
 
 
 @cache_page(timeout=60 * 60 * 24)
