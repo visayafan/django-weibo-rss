@@ -15,6 +15,10 @@ from django.views.decorators.cache import cache_page
 from hanziconv import HanziConv
 
 
+def indent_paragraph(para):
+    return para.replace('<p>', '<p>\u3000\u3000')
+
+
 @cache_page(timeout=60 * 60 * 24)
 def dazuoshou(request):
     feed = {
@@ -154,10 +158,11 @@ def zaobaotoday(request):
     b = BeautifulSoup(requests.get(zaobao_feed_url).content, 'xml')
     item_list = []
     for item in b.find_all('item'):
+        # 去重
         if item.title.text not in item_list:
             item_list.append(item.title.text)
             # 段落缩进
-            dt = item.description.text.replace('<p>', '<p>\u3000\u3000')
+            dt = indent_paragraph(item.description.text)
             # 去掉广告及推荐
             pos = dt.find('<div class="tagcloud">')
             if pos != -1:
@@ -166,3 +171,11 @@ def zaobaotoday(request):
         else:
             item.extract()
     return HttpResponse(str(b), content_type='application/xml')
+
+
+# 自由亚洲国内新闻
+def rfa_mandarin(request):
+    feed_url = 'https://www.rfa.org/mandarin/yataibaodao/rss2.xml'
+    b = BeautifulSoup(requests.get(feed_url).content, 'html.parser')
+    response_str = indent_paragraph(str(b))
+    return HttpResponse(response_str, content_type='application/xml')

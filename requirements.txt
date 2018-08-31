@@ -8,5 +8,3 @@ Django
 beautifulsoup4
 djangorestframework
 lxml
-whitenoise==4.0
-gunicorn==19.9.0

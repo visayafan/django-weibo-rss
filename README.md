@@ -15,9 +15,8 @@ Python版本为3.6，Django版本为2.1。
 有两种过滤方法：
 
 - 全局过滤：在filter.json中添加过滤关键字，将对所有微博实现过滤：包含exclude列表中关键字的微博和不包含include列表中关键字的微博将被过滤掉；
-- 局部过滤：可通过URL查询参数方法实现对某个博主的微博进行过滤，方法为/?exclude=广告|红包&include=Python|Java，多个关键字以`|`分隔；
+- 局部过滤：可通过URL查询参数方法实现对某个博主的微博进行过滤，方法为`/?exclude=广告|红包&include=Python|Java`，多个关键字以`|`分隔；
 
 ## Demo
 
-我在heroku上建了个Demo，链接为 [https://django-weibo-rss.herokuapp.com](https://django-weibo-rss.herokuapp.com)，因为heroku每月有时长限制，所以每月最后几天可能不能使用。
-
+[http://45.76.148.189](http://45.76.148.189/)

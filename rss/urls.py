@@ -9,4 +9,5 @@ urlpatterns = [
     path('miscs/fangeqiang/', miscs.fangeqiang),
     path('miscs/letscorp/', miscs.letscorp),
     path('miscs/zaobaotoday/', miscs.zaobaotoday),
+    path('miscs/rfa_mandarin/', miscs.rfa_mandarin),
 ]
