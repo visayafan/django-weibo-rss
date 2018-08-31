@@ -48,6 +48,39 @@ def get_full_text(status):
     return status['text']
 
 
+# 表情图标用已经处理过的小图标
+def format_emoji_resize(description, emoji_dir, emoji_size):
+    b = BeautifulSoup(description, 'html.parser')
+    emojis_tag = b.find_all('span', class_='url-icon')
+    if emojis_tag:
+        for emoji_tag in emojis_tag:
+            if emoji_tag.img.has_attr('alt') and '[' in emoji_tag.img.get('alt'):
+                emoji_name = emoji_tag.img.get('src').split('/')[-1]
+                if emoji_name not in os.listdir(emoji_dir):
+                    logging.info('正在下载emoji:' + emoji_tag.img.get('alt'))
+                    wget.download('http:' + emoji_tag.img.get('src'), os.path.join(emoji_dir, emoji_name))
+                    Image.open(os.path.join(emoji_dir, emoji_name)).resize(emoji_size).save(os.path.join(emoji_dir, emoji_name))
+                emoji_tag.img['src'] = '/'.join(['http://45.76.148.189:81', emoji_dir, emoji_name])
+    return b
+
+
+# 处理表情图标，默认表情图标全部转成文字
+def format_emoji_text(request, description):
+    b = BeautifulSoup(description, 'html.parser')
+    if not request.GET.get('emoji'):
+        icons = b.find_all('span', class_='url-icon')
+        # 去掉位置/链接前的图标，太大太难看
+        if icons is not None:
+            for icon in icons:
+                # 表情图标img标签的alt值类似"[哈哈]"
+                if icon.img.has_attr('alt') and ('[' in icon.img.get('alt')):
+                    icon.replace_with(icon.img.get('alt'))
+                # 不是表情图标直接删除，例如文章链接、地理位置前的图标
+                else:
+                    icon.decompose()
+    return b
+
+
 # 处理微博内容
 def format_status(request, status):
     description = get_full_text(status)
@@ -60,34 +93,11 @@ def format_status(request, status):
                         '</div>').format(url=retweeted_user['profile_url'],
                                          name=retweeted_user['screen_name'],
                                          retweet=format_status(request, status['retweeted_status']))
-    # 处理表情图标，默认表情图标全部转成文字
-    # b = BeautifulSoup(description, 'html.parser')
-    # if not request.GET.get('emoji'):
-    #     icons = b.find_all('span', class_='url-icon')
-    #     # 去掉位置/链接前的图标，太大太难看
-    #     if icons is not None:
-    #         for icon in icons:
-    #             # 表情图标img标签的alt值类似"[哈哈]"
-    #             if icon.img.has_attr('alt') and ('[' in icon.img.get('alt')):
-    #                 icon.replace_with(icon.img.get('alt'))
-    #             # 不是表情图标直接删除，例如文章链接、地理位置前的图标
-    #             else:
-    #                 icon.decompose()
-
-    # 表情图标用已经处理过的小图标
-    b = BeautifulSoup(description, 'html.parser')
-    emojis_tag = b.find_all('span', class_='url-icon')
-    if emojis_tag:
-        for emoji_tag in emojis_tag:
-            if emoji_tag.img.has_attr('alt') and '[' in emoji_tag.img.get('alt'):
-                emoji_name = emoji_tag.img.get('src').split('/')[-1]
-                emoji_dir = 'static/images'
-                if emoji_name not in os.listdir(emoji_dir):
-                    wget.download('http:' + emoji_tag.img.get('src'), os.path.join(emoji_dir, emoji_name))
-                    Image.open(os.path.join(emoji_dir, emoji_name)).resize((20, 20)).save(os.path.join(emoji_dir, emoji_name))
-                emoji_tag.img['src'] = '/'.join(['http://45.76.148.189:81', 'images', emoji_name])
-            else:
-                emoji_tag.decompose()
+    # 保存emoji图片的目录
+    emoji_dir = 'static/images'
+    # emoji裁剪后的大小
+    emoji_size = (17, 17)
+    b = format_emoji_resize(description, emoji_dir, emoji_size)
 
     description = str(b)
     # 后跟所有图片
