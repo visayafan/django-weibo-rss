@@ -1,5 +1,6 @@
 Pillow
 wget
+hanziconv
 rfc3339
 python-dateutil
 requests
