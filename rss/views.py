@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import re
+from functools import lru_cache
 from json import JSONDecodeError
 
 import wget
@@ -34,6 +35,8 @@ STATUS_TTL = 60 * 60 * 24 * 3
 # 避免频繁抓取微博，3小时更新一次
 INDEX_TTL = 60 * 60 * 3
 
+mark = 0
+
 
 # 获取微博全文
 def get_full_text(status):
@@ -48,21 +51,28 @@ def get_full_text(status):
     return status['text']
 
 
+@lru_cache(maxsize=1)
+def get_emoji_by_listdir(emoji_dir, mark):
+    return os.listdir(emoji_dir)
+
+
 # 表情图标用已经处理过的小图标
 def format_emoji_resize(description, emoji_dir, emoji_size):
+    global mark
     b = BeautifulSoup(description, 'html.parser')
     emojis_tag = b.find_all('span', class_='url-icon')
     if emojis_tag:
         for emoji_tag in emojis_tag:
             url = emoji_tag.img.get('src')
             emoji_name = url.split('/')[-1]
-            if emoji_name not in os.listdir(emoji_dir):
+            os.makedirs(emoji_dir, exist_ok=True)
+            if emoji_name not in get_emoji_by_listdir(emoji_dir, mark):
                 if url.startswith('//'):
                     url = 'http:' + url
                 logging.info('正在下载emoji:' + url)
-                os.makedirs(emoji_dir, exist_ok=True)
                 wget.download(url, os.path.join(emoji_dir, emoji_name))
                 Image.open(os.path.join(emoji_dir, emoji_name)).resize(emoji_size).save(os.path.join(emoji_dir, emoji_name))
+                mark = mark + 1
             emoji_tag.img['src'] = '/'.join(['http://45.76.148.189:81', emoji_dir, emoji_name])
     return b
 
@@ -126,7 +136,7 @@ def format_title(description):
         return b.text
     # 否则取第1句的前TITLE_MAX_LENGTH个字符作为标题
     title = cleaned_des[:TITLE_MAX_LENGTH]
-    sear = re.search(r'[,.!?;，。！？；\s]', title[::-1])
+    sear = re.search(r'[,.!?;，。！？；]', title[::-1])
     if sear:
         title = title[:-sear.end()]
     return title
@@ -201,5 +211,7 @@ def home(request):
         # 移动端访问时若访问地址为域名访问则会跳转到ID访问，例如https://weibo.com/rmrb会跳转到https://m.weibo.cn/u/2803301701，跳转后链接在r.url中
         origin_url = request.POST.get('url')
         r = requests.get(origin_url, headers={'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit'})
-        url = reverse('weibo', args=[r.url.split('/')[-1]])
+        uid = r.url.split('/')[-1]
+        uid = re.match(r'\d+', uid).group(0)
+        url = reverse('weibo', args=[uid])
     return render(request, 'rss/home.html', {'url': url, 'origin_url': origin_url})
