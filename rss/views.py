@@ -76,6 +76,8 @@ def format_emoji_resize(request, description, emoji_dir, emoji_size):
                 wget.download(url, emoji_dir_full_path)
                 Image.open(emoji_dir_full_path).resize(emoji_size).save(emoji_dir_full_path)
                 mark = mark + 1
+            # 应该在nginx中加上 proxy_set_header Host $host:$server_port;
+            # 详见 https://www.jianshu.com/p/cc5167032525
             emoji_tag.img['src'] = '/'.join([request.META['HTTP_HOST'], emoji_dir, emoji_name])
     return b
 
