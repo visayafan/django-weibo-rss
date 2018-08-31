@@ -3,7 +3,9 @@ import logging
 import os
 import re
 from json import JSONDecodeError
-from urllib.parse import urljoin
+
+import wget
+from PIL import Image
 
 import requests
 from bs4 import BeautifulSoup
@@ -78,9 +80,14 @@ def format_status(request, status):
     if emojis_tag:
         for emoji_tag in emojis_tag:
             if emoji_tag.img.has_attr('alt') and '[' in emoji_tag.img.get('alt'):
-                emoji_filename = emoji_tag.img.get('src').split('/')[-1]
-                url_to_emoji = urljoin('http://45.76.148.189:82', 'images', emoji_filename)
-                emoji_tag.img['src'] = os.path.join('images', url_to_emoji)
+                emoji_name = emoji_tag.img.get('src').split('/')[-1]
+                emoji_dir = 'static/images'
+                if emoji_name not in os.listdir(emoji_dir):
+                    wget.download('http:' + emoji_tag.img.get('src'), os.path.join(emoji_dir, emoji_name))
+                    Image.open(os.path.join(emoji_dir, emoji_name)).resize((20, 20)).save(os.path.join(emoji_dir, emoji_name))
+                emoji_tag.img['src'] = '/'.join(['http://45.76.148.189:81', 'images', emoji_name])
+            else:
+                emoji_tag.decompose()
 
     description = str(b)
     # 后跟所有图片
