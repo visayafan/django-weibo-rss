@@ -1,0 +1,22 @@
+.content {
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 15px;
+}
+
+.head {
+    margin-top: 50px;
+}
+
+.intro {
+    margin-top: 30px;
+}
+
+.result {
+    margin-top: 20px;
+}
+
+.reader-list {
+    margin-top: 20px;
+}

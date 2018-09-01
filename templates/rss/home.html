@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -5,31 +6,9 @@
     <meta name="renderer" content="webkit"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>新浪微博RSS订阅</title>
-    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.0/css/bootstrap.min.css">
-    <style>
-        .content {
-            max-width: 500px;
-            margin-left: auto;
-            margin-right: auto;
-            padding: 15px;
-        }
-
-        .head {
-            margin-top: 50px;
-        }
-
-        .intro {
-            margin-top: 30px;
-        }
-
-        .result {
-            margin-top: 20px;
-        }
-
-        .reader-list {
-            margin-top: 20px;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/bootstrap3.3.0.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <script src={% static 'js/clipboard.min.js' %}></script>
 </head>
 <html>
 <body>
@@ -57,13 +36,15 @@
             {% if url %}
                 <div class="result">
                     <p>RSS订阅地址：</p>
-                    <input id="clip" type="text" class="form-control" name="url" value="{{ url }}"/>
+                    <div class="input-group">
+                        <input id="clip" type="text" class="form-control" name="url" value="{{ url }}"/>
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" data-clipboard-target="#clip">复制订阅链接</button>
+                        </span>
+                    </div>
                 </div>
-                <ul class="reader-list">
-                    <li><a id="inoreader" href="https://www.inoreader.com/?add_feed={{ url }}" target="_blank">订阅到 Inoreader</a></li>
-                    <li><a id="feedly" href="https://feedly.com/i/subscription/{{ url }}" target="_blank">订阅到 Feedly</a></li>
-                    <li><a id="theoldreader" href="https://theoldreader.com/feeds/subscribe?url={{ url }}" target="_blank">订阅到 TheOldReader</a></li>
-                </ul>
+                <p></p>
+                <p><a href="https://www.inoreader.com/?add_feed={{ url }}" target="_blank">订阅到 Inoreader</a></p>
                 </div>
             {% endif %}
     </div>
@@ -73,6 +54,9 @@
     <p class="text-mute text-center">Powered by <a href="https://github.com/visayafan/django-weibo-rss" target="_blank">django-weibo-rss</a>.
         Inspired by <a href="https://github.com/zgq354/weibo-rss" target="_blank">weibo-rss</a>. .
     </p>
-</div>
 </body>
+</div>
+<script>
+    new ClipboardJS('.btn');
+</script>
 </html>
