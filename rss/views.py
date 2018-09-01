@@ -33,10 +33,11 @@ TITLE_MAX_LENGTH = 30
 STATUS_TTL = 60 * 60 * 24 * 3
 # 避免频繁抓取微博，3小时更新一次
 INDEX_TTL = 60 * 60 * 3
+# 保存emoji图片的目录
+EMOJI_DIR = 'static/images'
 
 mark = 0
 left_border = '<div style="border-left: 3px solid gray; padding-left: 1em;">{}</div>'
-shadow_background = '<div style="background-color: #f7f7f7; margin-top: -.25rem; padding: .75rem;">{}</div>'
 
 logging.basicConfig(level=logging.INFO)
 
@@ -69,7 +70,7 @@ def get_emoji_by_listdir(emoji_dir, mark):
 
 
 # 表情图标用已经处理过的小图标
-def format_emoji_resize(request, description, emoji_dir, emoji_size):
+def format_emoji_resize(request, description, emoji_size):
     global mark
     b = BeautifulSoup(description, 'html.parser')
     emojis_tag = b.find_all('span', class_='url-icon')
@@ -77,9 +78,9 @@ def format_emoji_resize(request, description, emoji_dir, emoji_size):
         for emoji_tag in emojis_tag:
             url = emoji_tag.img.get('src')
             emoji_name = url.split('/')[-1]
-            os.makedirs(emoji_dir, exist_ok=True)
-            emoji_dir_full_path = os.path.join(emoji_dir, emoji_name)
-            if emoji_name not in get_emoji_by_listdir(emoji_dir, mark):
+            os.makedirs(EMOJI_DIR, exist_ok=True)
+            emoji_dir_full_path = os.path.join(EMOJI_DIR, emoji_name)
+            if emoji_name not in get_emoji_by_listdir(EMOJI_DIR, mark):
                 if url.startswith('//'):
                     url = 'http:' + url
                 logging.info('正在下载emoji:' + url)
@@ -88,7 +89,7 @@ def format_emoji_resize(request, description, emoji_dir, emoji_size):
                 mark = mark + 1
             # 应该在nginx中加上 proxy_set_header Host $host:$server_port;
             # 详见 https://www.jianshu.com/p/cc5167032525
-            emoji_tag.img['src'] = 'http://' + '/'.join([get_domain_name_or_host_ip(request), emoji_dir, emoji_name])
+            emoji_tag.img['src'] = 'http://' + '/'.join([get_domain_name_or_host_ip(request), EMOJI_DIR, emoji_name])
     return b
 
 
@@ -99,22 +100,20 @@ def format_status(request, status):
     if 'retweeted_status' in status:
         description += '<br/><br/>'
         retweeted_user = status['retweeted_status']['user']
-        description += shadow_background.format(
+        description += left_border.format(
             '@<a href="{url}">{name}</a>：{retweet}'.format(
                 url=retweeted_user['profile_url'],
                 name=retweeted_user['screen_name'],
                 retweet=format_status(request, status['retweeted_status'])))
-    # 保存emoji图片的目录
-    emoji_dir = 'static/images'
     # emoji裁剪后的大小
     emoji_size = (17, 17)
-    b = format_emoji_resize(request, description, emoji_dir, emoji_size)
+    b = format_emoji_resize(request, description, emoji_size)
     description = str(b)
     # 后跟所有图片
     if 'pics' in status:
         for pic in status['pics']:
             # 默认显示小图，点击可打开大图
-            description += '<br/><br/><a href="{large_url}" target="_blank"><img src="{small_url}"/></a>'.format(
+            description += '<br/><br/><a href="{large_url}"><img src="{small_url}"/></a>'.format(
                 large_url=pic['large']['url'], small_url=pic['url'])
     return description
 
