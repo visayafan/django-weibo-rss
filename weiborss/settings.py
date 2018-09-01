@@ -35,8 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rss',
-    'rest_framework',
+    'weibo',
 ]
 
 MIDDLEWARE = [
@@ -115,10 +114,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATIC_TMP = os.path.join(BASE_DIR, 'static')
-os.makedirs(STATIC_TMP, exist_ok=True)
-os.makedirs(STATIC_ROOT, exist_ok=True)
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static'),
-)
+# STATIC_ROOT是生产环境即DEBUG=False时 python manage.py collectstatic 命令会将所有app的静态文件全部拷贝到这个目录中
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# 所有app公共的静态文件存放地址
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'static')
+# ]

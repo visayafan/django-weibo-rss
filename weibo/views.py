@@ -9,6 +9,7 @@ import requests
 import wget
 from PIL import Image
 from bs4 import BeautifulSoup
+from django.conf import settings
 from django.core.cache import cache
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -33,11 +34,13 @@ TITLE_MAX_LENGTH = 30
 STATUS_TTL = 60 * 60 * 24 * 3
 # 避免频繁抓取微博，3小时更新一次
 INDEX_TTL = 60 * 60 * 3
-# 保存emoji图片的目录
-EMOJI_DIR = 'static/images'
 
 mark = 0
 left_border = '<div style="border-left: 3px solid gray; padding-left: 1em;">{}</div>'
+# 保存emoji图片的目录，app中static中的images目录
+emoji_dir_base = 'weibo/static/'
+emoji_url_dir = 'images'
+emoji_dir = os.path.join(emoji_dir_base, emoji_url_dir)
 
 logging.basicConfig(level=logging.INFO)
 
@@ -78,18 +81,18 @@ def format_emoji_resize(request, description, emoji_size):
         for emoji_tag in emojis_tag:
             url = emoji_tag.img.get('src')
             emoji_name = url.split('/')[-1]
-            os.makedirs(EMOJI_DIR, exist_ok=True)
-            emoji_dir_full_path = os.path.join(EMOJI_DIR, emoji_name)
-            if emoji_name not in get_emoji_by_listdir(EMOJI_DIR, mark):
+            os.makedirs(emoji_dir, exist_ok=True)
+            emoji_dir_full_path = os.path.join(emoji_dir, emoji_name)
+            if emoji_name not in get_emoji_by_listdir(emoji_dir, mark):
                 if url.startswith('//'):
                     url = 'http:' + url
                 logging.info('正在下载emoji:' + url)
                 wget.download(url, emoji_dir_full_path)
                 Image.open(emoji_dir_full_path).resize(emoji_size).save(emoji_dir_full_path)
-                mark = mark + 1
+                mark += 1
             # 应该在nginx中加上 proxy_set_header Host $host:$server_port;
             # 详见 https://www.jianshu.com/p/cc5167032525
-            emoji_tag.img['src'] = 'http://' + '/'.join([get_domain_name_or_host_ip(request), EMOJI_DIR, emoji_name])
+            emoji_tag.img['src'] = 'http://' + '/'.join([get_domain_name_or_host_ip(request), settings.STATIC_URL.replace('/', ''), emoji_url_dir, emoji_name])
     return b
 
 

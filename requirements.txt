@@ -6,5 +6,4 @@ python-dateutil
 requests
 Django
 beautifulsoup4
-djangorestframework
 lxml
