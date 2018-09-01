@@ -5,10 +5,9 @@ import re
 from functools import lru_cache
 from json import JSONDecodeError
 
+import requests
 import wget
 from PIL import Image
-
-import requests
 from bs4 import BeautifulSoup
 from django.core.cache import cache
 from django.http import JsonResponse
@@ -36,8 +35,19 @@ STATUS_TTL = 60 * 60 * 24 * 3
 INDEX_TTL = 60 * 60 * 3
 
 mark = 0
+left_border = '<div style="border-left: 3px solid gray; padding-left: 1em;">{}</div>'
+shadow_background = '<div style="background-color: #f7f7f7; margin-top: -.25rem; padding: .75rem;">{}</div>'
 
 logging.basicConfig(level=logging.INFO)
+
+
+# 若访问端口是80则返回域名或IP
+def get_domain_name_or_host_ip(request):
+    host_ip_port = request.META['HTTP_HOST'].split(':')
+    if host_ip_port[1] == '80':
+        return host_ip_port[0]
+    else:
+        return request.META['HTTP_HOST']
 
 
 # 获取微博全文
@@ -49,10 +59,10 @@ def get_full_text(status):
             return long_status['data']['text']
         except JSONDecodeError:
             logging.warning('查看全文失败：' + STATUS_DETAIL_API_URL.format(id=status['id']))
-            pass
     return status['text']
 
 
+# TODO 等微博所有表情图标全部下载到本地后将所有图标列在一个列表里，目前先用缓存的方法
 @lru_cache(maxsize=1)
 def get_emoji_by_listdir(emoji_dir, mark):
     return os.listdir(emoji_dir)
@@ -78,24 +88,7 @@ def format_emoji_resize(request, description, emoji_dir, emoji_size):
                 mark = mark + 1
             # 应该在nginx中加上 proxy_set_header Host $host:$server_port;
             # 详见 https://www.jianshu.com/p/cc5167032525
-            emoji_tag.img['src'] = 'http://' + '/'.join([request.META['HTTP_HOST'], emoji_dir, emoji_name])
-    return b
-
-
-# 处理表情图标，默认表情图标全部转成文字
-def format_emoji_text(request, description):
-    b = BeautifulSoup(description, 'html.parser')
-    if not request.GET.get('emoji'):
-        icons = b.find_all('span', class_='url-icon')
-        # 去掉位置/链接前的图标，太大太难看
-        if icons is not None:
-            for icon in icons:
-                # 表情图标img标签的alt值类似"[哈哈]"
-                if icon.img.has_attr('alt') and ('[' in icon.img.get('alt')):
-                    icon.replace_with(icon.img.get('alt'))
-                # 不是表情图标直接删除，例如文章链接、地理位置前的图标
-                else:
-                    icon.decompose()
+            emoji_tag.img['src'] = 'http://' + '/'.join([get_domain_name_or_host_ip(request), emoji_dir, emoji_name])
     return b
 
 
@@ -106,11 +99,11 @@ def format_status(request, status):
     if 'retweeted_status' in status:
         description += '<br/><br/>'
         retweeted_user = status['retweeted_status']['user']
-        description += ('<div style="border-left: 3px solid gray; padding-left: 1em;">'
-                        '@<a href="{url}">{name}</a>：{retweet}'
-                        '</div>').format(url=retweeted_user['profile_url'],
-                                         name=retweeted_user['screen_name'],
-                                         retweet=format_status(request, status['retweeted_status']))
+        description += shadow_background.format(
+            '@<a href="{url}">{name}</a>：{retweet}'.format(
+                url=retweeted_user['profile_url'],
+                name=retweeted_user['screen_name'],
+                retweet=format_status(request, status['retweeted_status'])))
     # 保存emoji图片的目录
     emoji_dir = 'static/images'
     # emoji裁剪后的大小
@@ -134,10 +127,10 @@ def format_title(description):
     # 若微博正文中含有【】则将其包含内容作为标题
     rst = re.search(r'【(.*?)】', cleaned_des)
     if rst:
-        return rst.group(1)
+        cleaned_des = rst.group(1)
     # 若微博内容文字少则直接做为标题
     if len(cleaned_des) <= TITLE_MAX_LENGTH:
-        return b.text
+        return cleaned_des
     # 否则取第1句的前TITLE_MAX_LENGTH个字符作为标题
     title = cleaned_des[:TITLE_MAX_LENGTH]
     sear = re.search(r'[,.!?;，。！？；]', title[::-1])
@@ -217,5 +210,5 @@ def home(request):
         r = requests.get(origin_url, headers={'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit'})
         uid = r.url.split('/')[-1]
         uid = re.match(r'\d+', uid).group(0)
-        url = 'http://' + request.META['HTTP_HOST'] + reverse('weibo', args=[uid])
+        url = 'http://' + get_domain_name_or_host_ip(request) + reverse('weibo', args=[uid])
     return render(request, 'rss/home.html', {'url': url, 'origin_url': origin_url})
