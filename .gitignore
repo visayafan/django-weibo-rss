@@ -1,5 +1,5 @@
 .idea/
 __pycache__/
 db.sqlite3
-rss/static/images/
+weibo/static/images/
 nohup.out

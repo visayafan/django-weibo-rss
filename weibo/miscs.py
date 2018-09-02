@@ -7,11 +7,6 @@ from dateutil import parser
 from django.core.cache import cache
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.cache import cache_page
-
-# 此文件与生成微博rss订阅源无关，私用备份
-
-
-# 大作手通知更新缓慢，设置24小时缓存，这样24小时内再次访问时直接返回缓存中的上次访问的rss/rss.xml，缓存到期后才再次执行函数体中的内容并更新缓存中的rss.xml
 from hanziconv import HanziConv
 
 
@@ -167,6 +162,10 @@ def zaobaotoday(request):
             pos = dt.find('<div class="tagcloud">')
             if pos != -1:
                 dt = dt[:pos]
+            pos = dt.find('获取更多RSS：')
+            if pos != -1:
+                dt = dt[:pos]
+            dt = dt.replace('<hr>','')
             item.description.string.replace_with(dt)
         else:
             item.extract()
