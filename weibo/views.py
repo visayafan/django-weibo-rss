@@ -45,6 +45,15 @@ emoji_dir = os.path.join(emoji_dir_base, emoji_url_dir)
 logging.basicConfig(level=logging.INFO)
 
 
+# 若访问端口是80则返回域名或IP
+def get_domain_name_or_host_ip(request):
+    host_ip_port = request.META['HTTP_HOST'].split(':')
+    if host_ip_port[1] == '80':
+        return host_ip_port[0]
+    else:
+        return request.META['HTTP_HOST']
+
+
 # 获取微博全文
 def get_full_text(status):
     if 'isLongText' in status and status['isLongText']:
@@ -203,5 +212,5 @@ def home(request):
         r = requests.get(origin_url, headers={'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit'})
         uid = r.url.split('/')[-1]
         uid = re.match(r'\d+', uid).group(0)
-        url = request.build_absolute_uri(reverse('weibo', args=[uid]))
+        url = 'http://' + get_domain_name_or_host_ip(request) + reverse('weibo', args=[uid])
     return render(request, 'weibo/home.html', {'url': url, 'origin_url': origin_url})
